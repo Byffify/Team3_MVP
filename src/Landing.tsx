@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { saveDemoSignup, validateSignup, type SignupDraft, type SignupSubmission } from './signup';
+import { submitSignup, validateSignup, SIGNUP_SUCCESS, SIGNUP_FAILURE, type SignupDraft } from './signup';
 import './landing.css';
 
 function LandingIcon({ name, size = 24 }: { name: 'car' | 'checklist' | 'evidence' | 'report' | 'arrow'; size?: number }) {
@@ -30,17 +30,19 @@ const steps = [
 ];
 const faqs = [
   { question: '2Cars ยืนยันประวัติรถสวมซากได้ไหม?', answer: 'ไม่ได้ 2Cars ช่วยบันทึกข้อมูลและติดตามการตรวจของทีม ไม่เชื่อมฐานข้อมูลทางการ ไม่ยืนยันประวัติ และไม่รับรองว่ารถปลอดภัย' },
-  { question: 'ทดลองฟรี ต้องสมัครสมาชิกก่อนหรือเปล่า?', answer: 'ต้นแบบนี้ทดลองฟรีและเปิดแอปได้โดยไม่ต้องมีบัญชี ฟอร์มลงชื่อเป็นฟอร์มสาธิต ไม่จำเป็นต้องกรอกก่อนทดลองแอป' },
+  { question: 'ทดลองฟรี ต้องสมัครสมาชิกก่อนหรือเปล่า?', answer: 'ต้นแบบนี้ทดลองฟรีและเปิดแอปได้โดยไม่ต้องมีบัญชี ฟอร์มลงชื่อรอใช้แยกจากการทดลองแอป ไม่จำเป็นต้องกรอกก่อนทดลองแอป' },
   { question: 'ข้อมูลรถเก็บที่ไหน ทีมเปิดดูจากเครื่องอื่นได้ไหม?', answer: 'ข้อมูลอยู่ในเบราว์เซอร์เดิมบนอุปกรณ์เดิม ไม่มีการซิงก์ข้ามเครื่อง รุ่นทดลองนี้เหมาะกับการใช้เครื่องร่วมกันและส่งต่อรายงานให้ทีม' },
   { question: 'รูปและไฟล์หลักฐานยังอยู่หลังปิดแอปไหม?', answer: 'ชื่อไฟล์ หมายเหตุ และแหล่งข้อมูลจะบันทึกไว้ แต่ไฟล์จริงดูได้เฉพาะรอบที่แนบ เมื่อรีโหลดหรือเปิดแอปใหม่ต้องแนบไฟล์อีกครั้งเพื่อเปิดดู' },
   { question: 'รายงานส่งต่อให้ทีมได้อย่างไร?', answer: 'เปิดรายงานแล้วพิมพ์หรือบันทึกเป็น PDF ขนาด A4 หนึ่งหน้า รายงานแสดงชื่อหลักฐาน ไม่ได้ฝังไฟล์จริง และสถานะ “ตรวจแล้ว” ไม่ได้หมายถึงผ่านหรือปลอดภัย' },
 ];
 
-function DemoSignup() {
-  const [draft, setDraft] = useState<SignupDraft>({ name: '', email: '', role: '' });
+function WaitlistSignup() {
+  const [draft, setDraft] = useState<SignupDraft>({ name: '', email: '', extra: '' });
   const [errors, setErrors] = useState<Partial<Record<keyof SignupDraft, string>>>({});
   const [failure, setFailure] = useState('');
-  const [submission, setSubmission] = useState<SignupSubmission | null>(null);
+  const [submission, setSubmission] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const sending = useRef(false);
   const form = useRef<HTMLFormElement>(null);
   const confirmationTitle = useRef<HTMLHeadingElement>(null);
   const hadSubmission = useRef(false);
@@ -49,8 +51,9 @@ function DemoSignup() {
     else if (hadSubmission.current) form.current?.querySelector<HTMLInputElement>('input')?.focus();
     hadSubmission.current = !!submission;
   }, [submission]);
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
+    if (sending.current) return;
     setFailure('');
     const validation = validateSignup(draft);
     setErrors(validation);
@@ -58,21 +61,24 @@ function DemoSignup() {
       form.current?.querySelector<HTMLInputElement>(`[name="${Object.keys(validation)[0]}"]`)?.focus();
       return;
     }
-    try { setSubmission(saveDemoSignup(window.localStorage, draft)); }
-    catch { setFailure('บันทึกไม่สำเร็จ กรุณาตรวจการอนุญาตจัดเก็บข้อมูลของเบราว์เซอร์แล้วลองอีกครั้ง'); }
+    sending.current = true;
+    setIsSending(true);
+    try { await submitSignup(draft); setSubmission(true); }
+    catch { setFailure(SIGNUP_FAILURE); }
+    finally { sending.current = false; setIsSending(false); }
   }
   const fields: { key: keyof SignupDraft; label: string; placeholder: string; type: string; autoComplete?: string }[] = [
     { key: 'name', label: 'ชื่อ', placeholder: 'ชื่อที่ต้องการให้เรียก', type: 'text', autoComplete: 'name' },
     { key: 'email', label: 'อีเมล', placeholder: 'name@example.com', type: 'email', autoComplete: 'email' },
-    { key: 'role', label: 'คุณเกี่ยวข้องกับการซื้อรถในบทบาทใด?', placeholder: 'เช่น ผู้ดูแลเต็นท์ เจ้าของเต็นท์ หรือช่าง', type: 'text' },
+    { key: 'extra', label: 'คุณเกี่ยวข้องกับการซื้อรถในบทบาทใด?', placeholder: 'เช่น ผู้ดูแลเต็นท์ เจ้าของเต็นท์ หรือช่าง', type: 'text' },
   ];
   return <div className="signup-panel">
-    <p className="landing-sr-only" role="status" aria-live="polite">{submission ? 'บันทึกการลงชื่อทดลองบนเบราว์เซอร์นี้แล้ว ยังไม่ได้ส่งถึงทีม 2Cars' : ''}</p>
-    {submission ? <div className="signup-confirmation"><span className="signup-success-icon"><LandingIcon name="checklist" size={32} /></span><h3 id="signup-confirmation-title" tabIndex={-1} ref={confirmationTitle}>บันทึกการลงชื่อทดลองแล้ว</h3><p>ขอบคุณ {submission.name} ข้อมูลล่าสุดเก็บบนเบราว์เซอร์นี้แล้ว <strong>ยังไม่ได้ส่งถึงทีม 2Cars</strong></p><a className="landing-button" href="/app.html">เริ่มทดลองแอป<LandingIcon name="arrow" size={18} /></a><button className="landing-text-button" onClick={() => setSubmission(null)}>แก้ไขข้อมูลลงชื่อ</button></div> : <form ref={form} onSubmit={submit} noValidate aria-label="ฟอร์มลงชื่อทดลอง">
-      {fields.map(field => <label key={field.key} htmlFor={`signup-${field.key}`}>{field.label}<input id={`signup-${field.key}`} name={field.key} type={field.type} autoComplete={field.autoComplete} required maxLength={field.key === 'email' ? 254 : 120} value={draft[field.key]} placeholder={field.placeholder} aria-invalid={!!errors[field.key]} aria-describedby={errors[field.key] ? `signup-error-${field.key}` : undefined} onChange={event => { setDraft({ ...draft, [field.key]: event.target.value }); setErrors({ ...errors, [field.key]: undefined }); }} />{errors[field.key] && <span className="signup-field-error" id={`signup-error-${field.key}`}>{errors[field.key]}</span>}</label>)}
-      <p className="signup-privacy">ฟอร์มสาธิต: เก็บเฉพาะข้อมูลลงชื่อล่าสุดบนเบราว์เซอร์นี้ ยังไม่ส่งถึงทีม และไม่ส่งอีเมลอัตโนมัติ</p>
+    <p className="landing-sr-only" role="status" aria-live="polite">{submission ? SIGNUP_SUCCESS : isSending ? 'กำลังส่งคำขอ…' : ''}</p>
+    {submission ? <div className="signup-confirmation"><span className="signup-success-icon"><LandingIcon name="checklist" size={32} /></span><h3 id="signup-confirmation-title" tabIndex={-1} ref={confirmationTitle}>ส่งคำขอแล้ว</h3><p>{SIGNUP_SUCCESS}</p><a className="landing-button" href="/app.html">เริ่มทดลองแอป<LandingIcon name="arrow" size={18} /></a><button className="landing-text-button" onClick={() => setSubmission(false)}>แก้ไขข้อมูลลงชื่อ</button></div> : <form ref={form} onSubmit={submit} noValidate aria-label="ฟอร์มลงชื่อรอใช้" aria-busy={isSending}>
+      {fields.map(field => <label key={field.key} htmlFor={`signup-${field.key}`}>{field.label}<input id={`signup-${field.key}`} name={field.key} type={field.type} autoComplete={field.autoComplete} required disabled={isSending} maxLength={field.key === 'email' ? 254 : 120} value={draft[field.key]} placeholder={field.placeholder} aria-invalid={!!errors[field.key]} aria-describedby={errors[field.key] ? `signup-error-${field.key}` : undefined} onChange={event => { setDraft({ ...draft, [field.key]: event.target.value }); setErrors({ ...errors, [field.key]: undefined }); }} />{errors[field.key] && <span className="signup-field-error" id={`signup-error-${field.key}`}>{errors[field.key]}</span>}</label>)}
+      <p className="signup-privacy">ชื่อ อีเมล และบทบาทจะถูกส่งเพื่อขอลงชื่อรอใช้ ไม่บันทึกข้อมูลลงชื่อไว้ในเบราว์เซอร์</p>
       {failure && <p className="signup-field-error" role="alert">{failure}</p>}
-      <button className="landing-button" type="submit">บันทึกการลงชื่อทดลอง<LandingIcon name="arrow" size={18} /></button>
+      <button className="landing-button" type="submit" disabled={isSending}>{isSending ? 'กำลังส่งคำขอ…' : 'ลงชื่อรอใช้'}<LandingIcon name="arrow" size={18} /></button>
     </form>}
   </div>;
 }
@@ -93,10 +99,10 @@ export default function Landing() {
 
       <section className="landing-how landing-container" id="how-it-works" aria-labelledby="how-title"><div className="landing-section-heading"><h2 id="how-title">เริ่มจากรถหนึ่งคัน<br />แล้วค่อยเก็บข้อมูลให้ครบ</h2><a className="landing-secondary-link" href="/app.html">เปิดแอปทดลอง<LandingIcon name="arrow" size={17} /></a></div><ol className="steps-list">{steps.map((step, index) => <li key={step.title}><span className="step-number" aria-hidden="true">{index + 1}</span><h3>{step.title}</h3><p>{step.text}</p></li>)}</ol></section>
 
-      <section className="landing-signup" id="signup" aria-labelledby="signup-title"><div className="landing-container signup-layout"><div className="signup-intro"><h2 id="signup-title">ลองลงชื่อ<br />เพื่อทดลองต้นแบบ</h2><p>ลองกรอกบทบาทที่เกี่ยวข้องกับการซื้อรถ แล้วทดลองบันทึกรถคันแรกได้เลย</p><div className="signup-demo-note"><LandingIcon name="evidence" /><p>นี่เป็นฟอร์มสาธิต ข้อมูลเก็บบนเบราว์เซอร์นี้เท่านั้น ยังไม่ถูกส่งถึงทีม 2Cars</p></div><p className="signup-optional">เปิดแอปได้โดยไม่ต้องกรอกฟอร์มนี้</p></div><DemoSignup /></div></section>
+      <section className="landing-signup" id="signup" aria-labelledby="signup-title"><div className="landing-container signup-layout"><div className="signup-intro"><h2 id="signup-title">ลงชื่อรอใช้<br />2Cars</h2><p>กรอกชื่อ อีเมล และบทบาทที่เกี่ยวข้องกับการซื้อรถ เพื่อส่งคำขอลงชื่อรอใช้</p><div className="signup-demo-note"><LandingIcon name="evidence" /><p>ข้อมูลในฟอร์มจะถูกส่งไปยังระบบรับคำขอ กรุณาใช้อีเมลที่ต้องการรับการติดต่อ</p></div><p className="signup-optional">เปิดแอปได้โดยไม่ต้องกรอกฟอร์มนี้</p></div><WaitlistSignup /></div></section>
 
       <section className="landing-faq landing-container" id="faq" aria-labelledby="faq-title"><h2 id="faq-title">ก่อนลองใช้<br />มีเรื่องไหนที่อยากรู้?</h2><div className="faq-list">{faqs.map(faq => <details key={faq.question}><summary>{faq.question}<span className="faq-expand" aria-hidden="true" /></summary><p>{faq.answer}</p></details>)}</div></section>
     </main>
-    <footer className="landing-footer" id="contact"><div className="landing-container"><div className="footer-top"><div><a className="landing-brand" href="/"><span className="landing-brand-mark"><LandingIcon name="car" size={25} /></span><span>2Cars</span></a><p>ทีมพัฒนา 2Cars<br />ต้นแบบเครื่องมือบันทึกการตรวจรถก่อนซื้อ</p></div><div className="footer-links"><a href="/app.html">ทดลองแอป</a><a href="#signup">ฟอร์มลงชื่อทดลอง</a><a href="#faq">คำถามที่พบบ่อย</a><p>หน้านี้ยังไม่มีช่องทางติดต่อทีมโดยตรง<br />ฟอร์มสาธิตยังไม่ส่งข้อมูลถึงทีม</p></div></div><div className="footer-bottom"><span>2Cars · {new Date().getFullYear()}</span><span>บันทึกเพื่อประกอบการพิจารณา ไม่ยืนยันประวัติรถ</span></div></div></footer>
+    <footer className="landing-footer" id="contact"><div className="landing-container"><div className="footer-top"><div><a className="landing-brand" href="/"><span className="landing-brand-mark"><LandingIcon name="car" size={25} /></span><span>2Cars</span></a><p>ทีมพัฒนา 2Cars<br />ต้นแบบเครื่องมือบันทึกการตรวจรถก่อนซื้อ</p></div><div className="footer-links"><a href="/app.html">ทดลองแอป</a><a href="#signup">ฟอร์มลงชื่อรอใช้</a><a href="#faq">คำถามที่พบบ่อย</a><p>หน้านี้ยังไม่มีช่องทางติดต่อทีมโดยตรง<br />ลงชื่อรอใช้ผ่านฟอร์มด้านบน</p></div></div><div className="footer-bottom"><span>2Cars · {new Date().getFullYear()}</span><span>บันทึกเพื่อประกอบการพิจารณา ไม่ยืนยันประวัติรถ</span></div></div></footer>
   </div>;
 }

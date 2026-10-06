@@ -1,26 +1,28 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { saveDemoSignup, validateSignup, SIGNUP_KEY } from './signup.ts';
+import { submitSignup, validateSignup } from './signup.ts';
 
-describe('landing demo signup', () => {
-  it('requires name, valid email and role', () => {
-    assert.deepEqual(Object.keys(validateSignup({ name: '', email: 'bad', role: '' })), ['name', 'email', 'role']);
-    assert.deepEqual(validateSignup({ name: 'ผู้ทดลอง', email: 'demo@example.com', role: 'ผู้ดูแลเต็นท์' }), {});
+describe('Make waitlist submission', () => {
+  it('requires name, valid email and extra before sending', async () => {
+    assert.deepEqual(Object.keys(validateSignup({ name: '', email: 'bad', extra: '' })), ['name', 'email', 'extra']);
+    assert.deepEqual(validateSignup({ name: 'ผู้ทดลอง', email: 'demo@example.com', extra: 'ผู้ดูแลเต็นท์' }), {});
+    await assert.rejects(submitSignup({ name: '', email: 'bad', extra: '' }, async () => assert.fail('invalid form must not send')));
   });
-  it('saves only the latest signup under a key separate from vehicle storage', () => {
-    let storedKey = '', storedValue = '';
-    const result = saveDemoSignup({ setItem: (key, value) => { storedKey = key; storedValue = value; } }, { name: ' ผู้ทดลอง ', email: ' Demo@Example.com ', role: ' ผู้ดูแลเต็นท์ ' });
-    assert.equal(storedKey, SIGNUP_KEY);
-    const saved = JSON.parse(storedValue);
-    assert.equal(saved.name, 'ผู้ทดลอง');
-    assert.equal(saved.email, 'demo@example.com');
-    assert.equal(saved.role, 'ผู้ดูแลเต็นท์');
-    assert.equal(saved.schemaVersion, 1);
-    assert.equal(saved.submittedAt, result.submittedAt);
-    assert.notEqual(SIGNUP_KEY, 'vehicle-inspection-mvp:v1');
+  it('POSTs exactly three URL-encoded fields with no-cors and no JSON headers', async () => {
+    let called = false;
+    await submitSignup({ name: ' ผู้ทดลอง ', email: ' Demo@Example.com ', extra: ' ผู้ดูแลเต็นท์ ' }, async (url, init) => {
+      called = true;
+      assert.ok(typeof url === 'string' && url.startsWith('https://hook.eu1.make.com/'));
+      assert.equal(init?.method, 'POST');
+      assert.equal(init?.mode, 'no-cors');
+      assert.equal(init?.headers, undefined);
+      assert.ok(init?.body instanceof URLSearchParams);
+      assert.deepEqual([...init.body.entries()], [['name', 'ผู้ทดลอง'], ['email', 'demo@example.com'], ['extra', 'ผู้ดูแลเต็นท์']]);
+      return new Proxy({} as Response, { get: (_target, property) => property === 'then' ? undefined : assert.fail('opaque response must not be inspected') });
+    });
+    assert.ok(called);
   });
-  it('does not write invalid submissions and propagates denied storage', () => {
-    assert.throws(() => saveDemoSignup({ setItem: () => assert.fail('should not write') }, { name: '', email: 'bad', role: '' }));
-    assert.throws(() => saveDemoSignup({ setItem: () => { throw new Error('quota'); } }, { name: 'ทดสอบ', email: 'demo@example.com', role: 'ช่าง' }));
+  it('propagates network failures without logging or exposing the destination', async () => {
+    await assert.rejects(submitSignup({ name: 'ทดสอบ', email: 'demo@example.com', extra: 'ช่าง' }, async () => { throw new TypeError('Network failure'); }), TypeError);
   });
 });

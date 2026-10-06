@@ -1,0 +1,12 @@
+{
+  "marker": "2Cars integration test 2026-10-06T17:06:44.264Z",
+  "fields": [
+    "name",
+    "email",
+    "extra"
+  ],
+  "clientFetchResolved": false,
+  "makeHistoryVerified": false,
+  "sheetVerified": false,
+  "inboxVerified": false
+}

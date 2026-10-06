@@ -18,7 +18,7 @@ class Browser {
     socket.addEventListener('message', event => {
       const message = JSON.parse(String(event.data));
       if (message.method === 'Page.loadEventFired') this.loaded.forEach(resolve => resolve());
-      if (process.env.DEBUG_CDP) console.log('CDP received', JSON.stringify(message).slice(0, 500));
+      if (process.env.DEBUG_CDP) console.log('CDP received', { id: message.id, method: message.method });
       const pending = this.pending.get(message.id);
       if (pending) {
         this.pending.delete(message.id);
@@ -110,19 +110,37 @@ test('complete desktop/mobile workflow, storage errors and one-page PDF', { time
     await browser.wait(`document.querySelector('.landing-app-preview img')?.complete && document.querySelector('.landing-app-preview img').naturalWidth > 0`);
     const landingMetrics = await browser.send('Page.getLayoutMetrics');
     await writeFile('docs/qa/landing-full.png', Buffer.from((await browser.send('Page.captureScreenshot', { captureBeyondViewport: true, clip: { x: 0, y: 0, width: 1440, height: landingMetrics.cssContentSize.height, scale: 1 } })).data, 'base64'));
-    await browser.click('บันทึกการลงชื่อทดลอง');
+    await browser.evaluate(`window.__signupRequests=[]; window.fetch=(_url,init)=>{ window.__signupRequests.push({method:init.method,mode:init.mode,fields:Object.fromEntries(init.body),isUrlEncoded:init.body instanceof URLSearchParams,hasHeaders:!!init.headers}); return new Promise((resolve,reject)=>{window.__resolveSignup=()=>resolve({});window.__rejectSignup=()=>reject(new TypeError('Network failure'));}); };`);
+    assert.deepEqual(await browser.evaluate(`Array.from(document.querySelectorAll('.signup-panel input')).map(input=>input.name)`), ['name','email','extra']);
+    await browser.click('ลงชื่อรอใช้');
     assert.equal(await browser.evaluate(`document.querySelectorAll('.signup-field-error').length`), 3);
     assert.equal(await browser.evaluate(`localStorage.getItem('2cars:signup-demo:v1')`), null);
     await browser.input('ชื่อ', 'ผู้ทดลอง 2Cars');
     await browser.input('อีเมล', 'demo@example.com');
     await browser.input('คุณเกี่ยวข้องกับการซื้อรถในบทบาทใด?', 'ผู้ดูแลเต็นท์');
-    await browser.click('บันทึกการลงชื่อทดลอง');
-    await browser.wait(`document.querySelector('.signup-confirmation')?.textContent.includes('ยังไม่ได้ส่งถึงทีม')`);
+    await browser.input('อีเมล', 'invalid-email');
+    await browser.click('ลงชื่อรอใช้');
+    assert.equal(await browser.evaluate(`window.__signupRequests.length`), 0, 'invalid email must not submit');
+    await browser.input('อีเมล', 'demo@example.com');
+    await browser.click('ลงชื่อรอใช้');
+    assert.ok(await browser.evaluate(`document.querySelector('.signup-panel button[type="submit"]').disabled`));
+    assert.equal(await browser.evaluate(`document.querySelector('.signup-panel button[type="submit"]').textContent`), 'กำลังส่งคำขอ…');
+    await browser.evaluate(`document.querySelector('.signup-panel form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));`);
+    assert.equal(await browser.evaluate(`window.__signupRequests.length`), 1, 'pending request must prevent duplicate submission');
+    assert.deepEqual(await browser.evaluate(`window.__signupRequests[0]`), {method:'POST',mode:'no-cors',fields:{name:'ผู้ทดลอง 2Cars',email:'demo@example.com',extra:'ผู้ดูแลเต็นท์'},isUrlEncoded:true,hasHeaders:false});
+    assert.equal(await browser.evaluate(`document.body.innerText.includes('hook.eu1.make.com')`), false, 'destination must not be visible');
+    await browser.evaluate(`window.__resolveSignup()`);
+    await browser.wait(`document.querySelector('.signup-confirmation')?.textContent.includes('ส่งคำขอแล้ว ขอบคุณ! หากไม่เห็นอีเมล กรุณาตรวจสอบ Spam')`);
     assert.equal(await browser.evaluate(`document.activeElement?.id`), 'signup-confirmation-title', 'confirmation should receive keyboard focus');
-    assert.equal(await browser.evaluate(`JSON.parse(localStorage.getItem('2cars:signup-demo:v1')).email`), 'demo@example.com');
+    assert.equal(await browser.evaluate(`localStorage.getItem('2cars:signup-demo:v1')`), null, 'new signup must not persist email locally');
     await browser.click('แก้ไขข้อมูลลงชื่อ');
     assert.equal(await browser.evaluate(`document.activeElement?.id`), 'signup-name', 'editing should return focus to form');
-    await browser.click('บันทึกการลงชื่อทดลอง');
+    await browser.click('ลงชื่อรอใช้');
+    await browser.evaluate(`window.__rejectSignup()`);
+    await browser.wait(`document.querySelector('.signup-panel [role="alert"]')?.textContent === 'ส่งไม่สำเร็จ กรุณาลองอีกครั้ง'`);
+    assert.equal(await browser.evaluate(`document.querySelector('.signup-panel button[type="submit"]').disabled`), false);
+    await browser.click('ลงชื่อรอใช้');
+    await browser.evaluate(`window.__resolveSignup()`);
     await browser.wait(`!!document.querySelector('.signup-confirmation')`);
     await browser.evaluate(`window.scrollTo(0,0)`);
     await writeFile('docs/qa/landing-desktop.png', Buffer.from((await browser.send('Page.captureScreenshot', { captureBeyondViewport: false })).data, 'base64'));
@@ -269,6 +287,19 @@ test('complete desktop/mobile workflow, storage errors and one-page PDF', { time
     await browser.wait(`document.querySelector('[role="alert"]')?.textContent.includes('อ่านข้อมูล')`);
     assert.equal(await browser.evaluate(`localStorage.getItem(${JSON.stringify(STORAGE_KEY)})`), '{broken');
     assert.ok(await browser.evaluate(`Array.from(document.querySelectorAll('button')).filter(b=>b.textContent.trim()==='เพิ่มรถ').every(b=>b.disabled)`));
+    if (process.env.LIVE_WAITLIST_EMAIL) {
+      await browser.load('Page.navigate', { url: 'http://127.0.0.1:5173' });
+      await browser.wait(`!!document.querySelector('.signup-panel form')`);
+      const marker = `2Cars integration test ${new Date().toISOString()}`;
+      await browser.input('ชื่อ', marker);
+      await browser.input('อีเมล', process.env.LIVE_WAITLIST_EMAIL);
+      await browser.input('คุณเกี่ยวข้องกับการซื้อรถในบทบาทใด?', 'ผู้ดูแลเต็นท์ (ทดสอบระบบ)');
+      await browser.click('ลงชื่อรอใช้');
+      await browser.wait(`!!document.querySelector('.signup-confirmation') || !!document.querySelector('.signup-panel [role="alert"]')`);
+      const clientResolved = await browser.evaluate(`!!document.querySelector('.signup-confirmation')`);
+      await writeFile('docs/qa/webhook-live-result.json', JSON.stringify({ marker, fields: ['name','email','extra'], clientFetchResolved: clientResolved, makeHistoryVerified: false, sheetVerified: false, inboxVerified: false }, null, 2));
+      console.log(clientResolved ? 'LIVE_TEST: browser fetch resolved; backend and inbox verification still required' : 'LIVE_TEST: network error; backend receipt not confirmed');
+    }
   } finally {
     browser?.socket.close();
     child.kill();
