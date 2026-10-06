@@ -21,3 +21,9 @@ UX revision: corrected newly loaded Toyota sample to follow-up for pending origi
 UX revision: report preserves full plate/chassis/engine identifiers in dedicated rows, orders pending items before completed items, and labels the abbreviated summary clearly. Normal table typography increased to 8.5pt; dense fixtures use 7.5pt.
 UX revision: mobile first item now starts at roughly 483px, status controls have >=44px touch targets and selected markers, duplicate status badges are hidden on mobile. Notes encourage putting the follow-up action first.
 Regression evidence: new sample test and full-identifier browser assertions failed before changes, then passed. 8 unit tests, Edge flow and TypeScript/Vite build passed after changes. Long reports remain one A4 page including full 80-character identifiers.
+
+2Cars landing: added all seven requested sections and original app screenshot, inherited palette/Thai fonts. User confirmed demo-local form and attributed interview summaries. No actual contact links were supplied, so Footer explains direct contact is not available on this page.
+Routing: Vite multi-page build (/ and /app.html), same origin preserves vehicle storage; original root #new/#vehicle routes redirect. Landing signup key is separate and stores latest submission only.
+Tests: new signup tests failed for absent implementation, then 11 unit tests passed. Landing/CTA/form/FAQ/320–1024px checks and original app flow passed. Full-page and mobile screenshots captured for review.
+
+Landing review: two P2 findings reproduced by failing browser tests, then fixed (keyboard confirmation/edit focus and in-place legacy hash redirect). Reviewer confirmed both resolved. Browser load waits now use actual navigation-completion events, resolving a timing race exposed in Chrome. Chrome final integration passed; no product behavior was weakened to accommodate the test.

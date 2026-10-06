@@ -2,7 +2,7 @@
 
 ## Results
 
-- `npm.cmd test`: **8 passed**, 0 failed (Node 24.19.0).
+- `npm.cmd test`: **11 passed**, 0 failed (Node 24.19.0).
 - `npm.cmd run build`: **passed**, TypeScript and Vite 8.3.0 production bundle generated in `dist/`.
 - `npm.cmd run test:e2e`: **passed** with isolated headless Edge 154.
 - Same browser suite with `BROWSER_EXECUTABLE` pointing to Chrome 154: **passed**.
@@ -50,3 +50,17 @@ Human testing with three dealership staff has **not** happened. No claim is made
 Browser tests use a separate disposable profile inside `.cache/` and a local debugging connection. Chromium sandbox disabling is restricted to this headless test process to accommodate the managed Windows execution environment; the application does not change the user's normal browser settings.
 
 Packages were copied from an existing local installation because outbound npm access was denied. A package-lock.json was generated offline for the selected dependencies. A fresh machine needs normal npm registry access for `npm ci`.
+
+## 2Cars landing checks
+
+- Thai root landing and /app.html both included in production build, each with its own title and description.
+- All seven requested sections present, five native FAQ disclosures, and an actual application screenshot labelled as fictional data.
+- Interview copy attributed to the supplied one-person summary, with no verbatim-quote claim, fabricated testimonials, user counts or partners.
+- Demo form rejects missing/invalid fields, saves only the latest name/email/role to its separate key, and explicitly confirms that the team has not received data.
+- Keyboard focus moves to the confirmation heading after save and back to name after edit; persistent live status region announces completion.
+- CTA opens the original app; old same-document root #new navigation redirects to /app.html#new. Vehicle store remains on the same origin and the original app regression suite passes.
+- No horizontal overflow at 320, 390, 768 and 1024px.
+- Edge and Chrome integration checks passed. Test harness now waits for actual Page.loadEventFired after reload/navigation rather than accidentally reading the previous document.
+- Independent reviewer confirmed the legacy-route and form-focus findings resolved.
+- Captures: qa/landing-desktop.png, qa/landing-mobile.png, qa/landing-full.png and qa/landing-confirmation.png.
+- Actual team contact information was not supplied; Footer states that no direct contact is available on this page rather than inventing an address.

@@ -14,6 +14,9 @@ Thai used-car dealership staff recording and reviewing vehicles before purchase.
 ## Product Purpose
 Record vehicles, evidence sources and inspection status; reveal missing work; produce a one-page report.
 
+## Landing Page
+2Cars Thai landing page at the root; the inspection app is at /app.html on the same origin. Inherit the green visual system. Hero copy supplied by the user; interview problem copy is paraphrased from the supplied single-interview summary with attribution. Demo signup stores the latest name/email/role locally only, as explicitly selected by the user. No backend submission or email notification. Direct contact information has not been supplied; do not invent it. No testimonials, user counts or partner logos.
+
 ## Operating Context
 One shared trial computer, same browser and origin. No multi-device collaboration. PDF reports may be shared.
 

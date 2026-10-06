@@ -67,3 +67,5 @@ Full-row vehicle buttons; segmented inspection status buttons with aria-pressed 
 ## Do's and Don'ts
 
 Keep incomplete inspection work prominent. Preserve whitespace and source attribution. Show storage failures in both alert and save indicator. Never convert counts into safety scores or hide unavailable attachments behind a working-preview affordance. Reports visibly label abbreviated text and never embed evidence files.
+
+The 2Cars landing inherits this palette and font stack. Its hero uses a two-phrase Thai headline at 28–54px to avoid broken words, one dark-green CTA and an actual labelled sample-data app screenshot. Mobile is a single column; desktop uses a split hero and spacious alternating sections. Signup controls use 16px input text and >=48px height, and FAQs use native details/summary controls. Separate page-scoped selectors prevent changes to inspection screens.
