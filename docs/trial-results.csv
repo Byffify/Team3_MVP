@@ -1,0 +1,4 @@
+participant_id,vehicle_label,recorded_without_developer_entry,report_seconds,report_within_300s,identified_followup_correctly,persistence_after_reopen,help_needed,will_use_real_vehicle,reason,friction,trial_date
+P01,ทดลอง 101,,,,,,,,,,
+P02,ทดลอง 102,,,,,,,,,,
+P03,ทดลอง 103,,,,,,,,,,

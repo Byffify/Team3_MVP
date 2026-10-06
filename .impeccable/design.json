@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "ก่อนซื้อ",
+  "mode": "operate",
+  "source": "src/styles.css",
+  "tokens": {
+    "colors": { "primary": "#143d32", "ink": "#23332d", "muted": "#64716a", "background": "#f5f6f3", "surface": "#ffffff", "line": "#dfe5df", "checked": "#236646", "followUp": "#85511b", "notChecked": "#59665f" },
+    "typography": { "fontFamily": "Noto Sans Thai, Leelawadee UI, Tahoma, sans-serif", "headlinePx": 29, "bodyPx": 14, "bodyLineHeight": 1.65, "reportTablePt": 8.5, "denseReportTablePt": 7.5, "mobileStatusPx": 12 },
+    "radii": { "controlPx": 6, "surfacePx": 9 },
+    "layout": { "sidebarPx": 232, "desktopInsetPx": 40, "breakpointsPx": [1200, 800, 520], "printWidthMm": 186, "printMarginMm": 12 },
+    "focus": { "color": "#b27b39", "outlinePx": 3, "offsetPx": 4 }
+  }
+}
