@@ -4,11 +4,13 @@
 .landing section { scroll-margin-top: 24px; }
 .landing h1, .landing h2 { text-wrap: balance; color: var(--green); font-weight: 600; }
 .landing h1 { font-size: clamp(32px, 3.8vw, 54px); line-height: 1.4; letter-spacing: -.02em; }
-.landing-hero h1 span { display: block; white-space: nowrap; }
+.landing-hero h1 span { display: block; }
 .landing h2 { font-size: clamp(27px, 4vw, 40px); line-height: 1.45; letter-spacing: -.015em; }
 .landing h3 { font-size: 20px; line-height: 1.6; font-weight: 600; }
 .landing p { max-width: 65ch; }
 .landing a { text-decoration: none; }
+.landing a:focus-visible { outline: 3px solid #28644e; outline-offset: 4px; border-radius: 3px; }
+.landing-solutions a:focus-visible { outline-color: #f6f8f2; }
 .landing-skip { position: absolute; top: 8px; left: 8px; z-index: 10; padding: 10px 15px; background: white; transform: translateY(-150%); }
 .landing-skip:focus { transform: translateY(0); }
 .landing-header { background: white; border-bottom: 1px solid var(--line); }
@@ -19,8 +21,9 @@
 .landing-nav nav a { display: inline-flex; align-items: center; min-height: 44px; gap: 8px; }
 .landing-nav-trial { background: #eaf0e6; padding: 8px 14px; border-radius: 6px; font-weight: 600; }
 .landing-nav nav a:hover { color: #2a674b; }
+.landing-hero-copy { min-width: 0; }
 .landing-hero { padding-block: 54px 64px; display: grid; gap: 36px; }
-.landing-hero-description { margin-top: 24px; font-size: 18px; color: #4f6558; }
+.landing-hero-description { max-width: 48ch; margin-top: 24px; font-size: 18px; color: #4f6558; }
 .landing-hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; margin-top: 28px; }
 .landing-button { display: inline-flex; align-items: center; justify-content: center; gap: 16px; min-height: 52px; padding: 12px 24px; background: var(--green); color: white; border: 1px solid transparent; border-radius: 6px; font-size: 16px; font-weight: 500; transition: background .18s; }
 .landing-button:hover { background: #245740; color: white; }

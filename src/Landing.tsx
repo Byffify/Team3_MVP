@@ -20,7 +20,7 @@ const problems = [
 ];
 const benefits = [
   { icon: 'checklist' as const, title: 'เห็นรายการที่ยังขาด', text: 'แยกสิ่งที่ตรวจแล้ว ต้องตรวจเพิ่ม และยังไม่ได้ตรวจ ให้ทีมรู้ว่าต้องติดตามเรื่องไหนต่อ' },
-  { icon: 'evidence' as const, title: 'เก็บข้อมูลและแหล่งหลักฐาน', text: 'บันทึกรถ หมายเหตุ รูปหรือไฟล์ พร้อมระบุว่าข้อมูลมาจากผู้ขาย ช่าง หรือศูนย์' },
+  { icon: 'evidence' as const, title: 'เก็บข้อมูลและแหล่งหลักฐาน', text: 'บันทึกหมายเหตุ แหล่งข้อมูล และชื่อไฟล์หลักฐาน ไฟล์จริงดูได้เฉพาะรอบที่แนบ ต้องแนบใหม่หลังรีโหลดหรือเปิดแอปใหม่' },
   { icon: 'report' as const, title: 'ทบทวนผ่านรายงานหนึ่งหน้า', text: 'รวมข้อมูลรถ สถานะ และหมายเหตุเป็นรายงาน A4 สำหรับพิมพ์หรือบันทึก PDF' },
 ];
 const steps = [
@@ -29,7 +29,7 @@ const steps = [
   { title: 'ทบทวนสิ่งที่ค้างแล้วสร้างรายงาน', text: 'ดูรายการที่ยังไม่ครบก่อนตัดสินใจ และส่งต่อรายงานให้ทีมทบทวน' },
 ];
 const faqs = [
-  { question: '2Cars ยืนยันประวัติรถสวมซากได้ไหม?', answer: 'ไม่ได้ 2Cars ช่วยบันทึกข้อมูลและติดตามการตรวจของทีม ไม่เชื่อมฐานข้อมูลทางการ ไม่ยืนยันประวัติ และไม่รับรองว่ารถปลอดภัย' },
+  { question: '2Cars ยืนยันประวัติรถสวมซากได้ไหม?', answer: 'ไม่ได้ 2Cars ช่วยบันทึกข้อมูลและติดตามการตรวจของทีม ไม่ตรวจประวัติรถอัตโนมัติ ไม่เชื่อมฐานข้อมูลทางการ ไม่ยืนยันรถสวมซาก และไม่รับรองสภาพหรือความปลอดภัยของรถ' },
   { question: 'ทดลองฟรี ต้องสมัครสมาชิกก่อนหรือเปล่า?', answer: 'ต้นแบบนี้ทดลองฟรีและเปิดแอปได้โดยไม่ต้องมีบัญชี ฟอร์มลงชื่อรอใช้แยกจากการทดลองแอป ไม่จำเป็นต้องกรอกก่อนทดลองแอป' },
   { question: 'ข้อมูลรถเก็บที่ไหน ทีมเปิดดูจากเครื่องอื่นได้ไหม?', answer: 'ข้อมูลอยู่ในเบราว์เซอร์เดิมบนอุปกรณ์เดิม ไม่มีการซิงก์ข้ามเครื่อง รุ่นทดลองนี้เหมาะกับการใช้เครื่องร่วมกันและส่งต่อรายงานให้ทีม' },
   { question: 'รูปและไฟล์หลักฐานยังอยู่หลังปิดแอปไหม?', answer: 'ชื่อไฟล์ หมายเหตุ และแหล่งข้อมูลจะบันทึกไว้ แต่ไฟล์จริงดูได้เฉพาะรอบที่แนบ เมื่อรีโหลดหรือเปิดแอปใหม่ต้องแนบไฟล์อีกครั้งเพื่อเปิดดู' },
@@ -89,7 +89,7 @@ export default function Landing() {
     <header className="landing-header"><div className="landing-container landing-nav"><a className="landing-brand" href="/" aria-label="2Cars หน้าหลัก"><span className="landing-brand-mark"><LandingIcon name="car" size={27} /></span><span>2Cars</span></a><nav aria-label="เมนูหน้าแนะนำ"><a href="#how-it-works">วิธีใช้งาน</a><a href="#faq">คำถามที่พบบ่อย</a><a className="landing-nav-trial" href="/app.html">ลองใช้ฟรี<LandingIcon name="arrow" size={16} /></a></nav></div></header>
     <main id="landing-main">
       <section className="landing-hero landing-container" id="hero" aria-labelledby="hero-title">
-        <div className="landing-hero-copy"><h1 id="hero-title"><span>ก่อนรับรถเข้าสต็อก</span>{' '}<span>เช็กสิ่งที่ยังขาดให้ครบ</span></h1><p className="landing-hero-description">บันทึกข้อมูลรถ เช็กรายการตรวจ แนบหลักฐาน และเห็นจุดที่ยังต้องติดตามก่อนตัดสินใจ</p><div className="landing-hero-actions"><a className="landing-button" href="/app.html">ลองใช้ฟรี<LandingIcon name="arrow" size={19} /></a><a className="landing-secondary-link" href="#how-it-works">ดูวิธีใช้งาน</a></div><p className="landing-trial-note">ทดลองต้นแบบได้ทันที ไม่ต้องมีบัญชีผู้ใช้</p><p className="landing-hero-limit">ช่วยจัดบันทึกการตรวจ ไม่ใช่การยืนยันประวัติหรือรับรองสภาพรถ</p></div>
+        <div className="landing-hero-copy"><h1 id="hero-title"><span>บันทึกการตรวจรถมือสอง</span>{' '}<span>เห็นรายการที่ต้องติดตามก่อนรับซื้อ</span></h1><p className="landing-hero-description">เว็บต้นแบบสำหรับเจ้าของและผู้ดูแลเต็นท์รถมือสอง บันทึกเช็กลิสต์ หมายเหตุ และแหล่งหลักฐาน พร้อมทบทวนรายการที่ต้องติดตามก่อนรับซื้อรถ</p><div className="landing-hero-actions"><a className="landing-button" href="/app.html">ลองใช้ฟรี<LandingIcon name="arrow" size={19} /></a><a className="landing-secondary-link" href="#how-it-works">ดูวิธีใช้งาน</a></div><p className="landing-trial-note">ทดลองต้นแบบได้ทันที ไม่ต้องมีบัญชีผู้ใช้</p><p className="landing-hero-limit">ช่วยจัดบันทึกการตรวจ ไม่ใช่การยืนยันประวัติหรือรับรองสภาพรถ</p></div>
         <figure className="landing-app-preview"><div className="preview-topbar"><span className="preview-window-marks" aria-hidden="true"><i /><i /><i /></span><span>พื้นที่บันทึกก่อนซื้อรถ</span><span className="preview-sample-label">ข้อมูลตัวอย่าง</span></div><img src="/images/app-preview.png" width="1440" height="1000" fetchPriority="high" alt="ภาพหน้าจอแอปต้นแบบ แสดงรถ Toyota และ Honda สมมติ พร้อมจำนวนรายการตรวจแล้ว ต้องตรวจเพิ่ม และยังไม่ได้ตรวจ" /><figcaption>ภาพหน้าจอแอปจริง · ข้อมูลรถสมมติสำหรับทดลอง</figcaption></figure>
       </section>
 

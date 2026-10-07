@@ -102,7 +102,7 @@ test('complete desktop/mobile workflow, storage errors and one-page PDF', { time
     await browser.send('Page.enable');
     await browser.send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
     await browser.load('Page.navigate', { url: 'http://127.0.0.1:5173' });
-    await browser.wait(`document.querySelector('h1')?.textContent === 'ก่อนรับรถเข้าสต็อก เช็กสิ่งที่ยังขาดให้ครบ'`);
+    await browser.wait(`document.querySelector('h1')?.textContent === 'บันทึกการตรวจรถมือสอง เห็นรายการที่ต้องติดตามก่อนรับซื้อ'`);
     assert.ok(await browser.evaluate(`document.title.includes('2Cars')`));
     assert.ok(await browser.evaluate(`document.querySelector('meta[name="description"]').content.includes('หลักฐาน')`));
     assert.equal(await browser.evaluate(`document.querySelectorAll('.landing-faq details').length`), 5);

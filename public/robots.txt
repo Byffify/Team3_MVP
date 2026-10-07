@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://team3-mvp.vercel.app/sitemap.xml
